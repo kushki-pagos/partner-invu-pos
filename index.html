@@ -245,6 +245,10 @@
       line-height: 1.5;
       color: var(--text-mute);
       text-align: center;
+      /* Reparte las palabras para que las líneas queden de largo
+         parejo y no quede una última línea con dos palabras.
+         Los navegadores que no lo soportan simplemente lo ignoran. */
+      text-wrap: balance;
     }
 
     /* Mensaje de error general */
