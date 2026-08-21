@@ -267,34 +267,15 @@
     @media (min-width: 861px) {
       .page {
         min-height: 100vh;
-        padding: 30px 0;   /* aire arriba y abajo */
 
-        /* El arte se ajusta al ALTO de la pantalla (no al ancho) y va
-           centrado, con 30px libres arriba y abajo. Detrás, un degradado
-           que continúa los colores de los bordes del arte (azul →
-           turquesa) para que el relleno sea imperceptible. */
-        background-image:
-          /* 1 · el arte, ajustado al alto y centrado */
-          url('./img-desktop.jpg'),
-          /* 2 · franja izquierda: réplica del degradado del borde
-                 izquierdo del arte (azul → cyan hacia abajo) */
-          linear-gradient(180deg, #2851d3 0%, #2b44d5 25%, #2f38d8 50%, #05a4bd 75%, #057dc3 100%),
-          /* 3 · franja derecha: réplica del borde derecho (turquesa) */
-          linear-gradient(180deg, #01e6b2 0%, #05d2b6 20%, #09c3b9 50%, #0fb0be 85%, #07cfb8 100%),
-          /* 4 · bandas de 30px arriba/abajo: réplica del barrido
-                 horizontal azul → turquesa de los bordes del arte */
-          linear-gradient(90deg, #2851d3 0%, #2851d3 15%, #1f6bcb 38%, #10a8bf 62%, #04d4b6 84%, #01e6b2 92%, #01e6b2 100%);
-        background-size:
-          auto calc(100vh - 60px),
-          50% calc(100vh - 60px),
-          50% calc(100vh - 60px),
-          cover;
-        background-position:
-          center 30px,
-          left 30px,
-          right 30px,
-          center center;
-        background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+        /* El arte (2400 × 1200) trae margen de sangrado alrededor del
+           contenido, así que con cover llena ancho y alto en cualquier
+           monitor y lo único que se recorta es degradado vacío.
+           Ya no hacen falta capas de relleno: nunca quedan franjas. */
+        background-image: url('./img-desktop.jpg');
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
 
         display: grid;
         grid-template-columns: 54% 46%;
