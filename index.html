@@ -107,6 +107,8 @@
       flex-direction: column;
       gap: 0.3125rem;
       margin-bottom: 0.75rem;
+      /* Ancla del mensaje de error, que va en la linea de la etiqueta */
+      position: relative;
     }
     .form-label {
       font-size: 0.75rem;
@@ -135,15 +137,19 @@
       box-shadow: 0 0 0 3px var(--accent-ring);
     }
 
-    /* Validación inline */
-    .field-wrapper { position: relative; }
-    .field-wrapper .form-input { padding-right: 5.5rem; }
+    /* Validación inline.
+       El mensaje va en la línea de la etiqueta, alineado a la derecha.
+       Antes iba dentro del campo y obligaba a reservarle 88px de
+       padding: en móvil eso se comía un tercio del ancho y cortaba el
+       texto que escribía el usuario. Acá no gasta ancho del campo y,
+       al ser absolute, aparecer o desaparecer no mueve nada. */
     .field-error-inline {
       position: absolute;
-      right: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
+      top: 0;
+      right: 0;
       font-size: 0.6875rem;
+      /* Mismo alto de linea que .form-label para que queden a la par */
+      line-height: 1.31;
       color: var(--danger);
       pointer-events: none;
       opacity: 0;
