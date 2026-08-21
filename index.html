@@ -391,6 +391,14 @@
       }
     }
 
+    /* 500 – 900px: 30px extra de aire arriba del formulario.
+       Va como margen de la tarjeta y no como padding de .form-zone
+       porque ese rango cruza dos layouts (apilado hasta 860px y
+       partido desde 861px) que traen paddings distintos. */
+    @media (min-width: 500px) and (max-width: 900px) {
+      .form-card { margin-top: 30px; }
+    }
+
     /* Teléfonos (menos de 450px): interlineado más ajustado
        en el párrafo de intro para que ocupe menos alto */
     @media (max-width: 449.98px) {
