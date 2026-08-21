@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kushki — Activa tus pagos</title>
+  <meta name="description" content="Conoce las soluciones de pago de Kushki: cobra en tu local, en línea o donde esté tu cliente, con velocidad y altas tasas de aprobación. Déjanos tus datos y un especialista te contacta." />
+  <!-- Igual al azul del borde superior del arte: la barra del navegador
+       en móvil se integra con la imagen de intro -->
+  <meta name="theme-color" content="#2F37D8" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Precarga solo el arte que corresponde a cada dispositivo -->
+  <link rel="preload" as="image" href="./img-desktop.jpg" media="(min-width: 861px)" />
+  <link rel="preload" as="image" href="./img-mobile-01.jpg" media="(max-width: 860px)" />
+
+  <style>
+    /* ─── RESET ─────────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ─── TOKENS DE MARCA (muestreados del arte) ─────────────── */
+    :root {
+      /* Color de acción de la página */
+      --accent:       #448EE4;
+      --accent-hover: #3179CC;
+      --accent-soft:  rgba(68,142,228,0.10);
+      --accent-ring:  rgba(68,142,228,0.25);
+
+      --title:      #023366;   /* azul profundo del título */
+      --navy:       #0E1B45;
+
+      --card:       #ffffff;
+      --field-bg:   #f5f8fc;
+      --field-line: #dde5f2;
+      --text:       #0E1B45;
+      --text-soft:  #566585;
+      --text-mute:  #8b98ae;
+      --danger:     #d1435b;
+    }
+
+    /* ─── BASE ──────────────────────────────────────────────── */
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Rubik', sans-serif;
+      color: var(--text);
+      background-color: #1a3fc4; /* fallback mientras carga el arte */
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════════════
+       ESTRUCTURA
+       .page       → contenedor general
+       .hero-mobile → imagen de intro (solo móvil)
+       .form-zone   → zona del formulario
+    ══════════════════════════════════════════════ */
+    .hero-mobile { display: none; }
+
+    .form-zone {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ─── TARJETA DEL FORMULARIO ─────────────────────────────── */
+    .form-card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border-radius: 1.5rem;
+      padding: 1.75rem 1.75rem 1.5rem;
+      box-shadow:
+        0 1px 2px rgba(14,27,69,0.06),
+        0 18px 48px rgba(14,27,69,0.22);
+    }
+
+    .form-title {
+      font-size: 1.3125rem;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.5rem;
+      color: var(--title);
+    }
+    .form-title .accent { color: var(--accent); }
+
+    .form-intro {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: var(--text-soft);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Campos */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3125rem;
+      margin-bottom: 0.75rem;
+    }
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-soft);
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.625rem 0.8125rem;
+      background: var(--field-bg);
+      border: 1px solid var(--field-line);
+      border-radius: 0.625rem;
+      color: var(--text);
+      font-family: 'Rubik', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 400;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-input::placeholder { color: #a9b5c9; }
+    .form-input:focus {
+      border-color: var(--accent);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    /* Validación inline */
+    .field-wrapper { position: relative; }
+    .field-wrapper .form-input { padding-right: 5.5rem; }
+    .field-error-inline {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.6875rem;
+      color: var(--danger);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
+    .field-error-inline.visible { opacity: 1; }
+    .form-input.field-invalid { border-color: var(--danger) !important; }
+    .form-input.field-valid { border-color: var(--accent); }
+
+    /* ─── CANAL DE CONTACTO — selector de 3 opciones ──────────── */
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    /* height:100% mantiene las 3 cajas a la misma altura aunque
+       una etiqueta ocupe dos líneas ("Reunión virtual") */
+    .choice { cursor: pointer; display: block; height: 100%; }
+    /* El radio real queda accesible pero oculto a la vista */
+    .choice input {
+      position: absolute;
+      width: 1px; height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .choice-box {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3125rem;
+      padding: 0.625rem 0.375rem;
+      background: var(--field-bg);
+      border: 1px solid var(--field-line);
+      border-radius: 0.625rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      text-align: center;
+      line-height: 1.25;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .choice-box svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .choice:hover .choice-box { border-color: #c3d0e6; }
+    .choice input:checked + .choice-box {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(68,142,228,0.18);
+    }
+    .choice input:focus-visible + .choice-box {
+      box-shadow: 0 0 0 3px rgba(68,142,228,0.38);
+    }
+    .choice-row.field-invalid .choice-box { border-color: var(--danger); }
+
+    /* Botón enviar */
+    .btn-submit {
+      width: 100%;
+      margin-top: 1.125rem;
+      padding: 0.8125rem 1.5rem;
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: 0.75rem;
+      font-family: 'Rubik', sans-serif;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+      box-shadow: 0 6px 18px rgba(68,142,228,0.35);
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: var(--accent-hover);
+      box-shadow: 0 8px 26px rgba(68,142,228,0.45);
+      transform: translateY(-1px);
+    }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-submit.loading::after {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Nota legal */
+    .form-legal {
+      margin-top: 0.75rem;
+      font-size: 0.6875rem;
+      line-height: 1.5;
+      color: var(--text-mute);
+      text-align: center;
+    }
+
+    /* Mensaje de error general */
+    .form-error {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.625rem 0.875rem;
+      background: rgba(209,67,91,0.08);
+      border: 1px solid rgba(209,67,91,0.25);
+      border-radius: 0.5rem;
+      color: var(--danger);
+      font-size: 0.8125rem;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════════════
+       DESKTOP — arte a pantalla completa,
+       formulario encima sobre la mitad derecha
+    ══════════════════════════════════════════════ */
+    @media (min-width: 861px) {
+      .page {
+        min-height: 100vh;
+        padding: 30px 0;   /* aire arriba y abajo */
+
+        /* El arte se ajusta al ALTO de la pantalla (no al ancho) y va
+           centrado, con 30px libres arriba y abajo. Detrás, un degradado
+           que continúa los colores de los bordes del arte (azul →
+           turquesa) para que el relleno sea imperceptible. */
+        background-image:
+          /* 1 · el arte, ajustado al alto y centrado */
+          url('./img-desktop.jpg'),
+          /* 2 · franja izquierda: réplica del degradado del borde
+                 izquierdo del arte (azul → cyan hacia abajo) */
+          linear-gradient(180deg, #2851d3 0%, #2b44d5 25%, #2f38d8 50%, #05a4bd 75%, #057dc3 100%),
+          /* 3 · franja derecha: réplica del borde derecho (turquesa) */
+          linear-gradient(180deg, #01e6b2 0%, #05d2b6 20%, #09c3b9 50%, #0fb0be 85%, #07cfb8 100%),
+          /* 4 · bandas de 30px arriba/abajo: réplica del barrido
+                 horizontal azul → turquesa de los bordes del arte */
+          linear-gradient(90deg, #2851d3 0%, #2851d3 15%, #1f6bcb 38%, #10a8bf 62%, #04d4b6 84%, #01e6b2 92%, #01e6b2 100%);
+        background-size:
+          auto calc(100vh - 60px),
+          50% calc(100vh - 60px),
+          50% calc(100vh - 60px),
+          cover;
+        background-position:
+          center 30px,
+          left 30px,
+          right 30px,
+          center center;
+        background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+
+        display: grid;
+        grid-template-columns: 54% 46%;
+      }
+      /* La columna 1 queda vacía a propósito: ahí vive el arte
+         (titular, terminal y bullets ya vienen en la imagen). */
+      .form-zone {
+        grid-column: 2;
+        padding: 2.5rem 3rem 2.5rem 1rem;
+      }
+
+      /* ─── Formulario un poco más grande en desktop ──────────── */
+      .form-card {
+        max-width: 540px;
+        padding: 2.125rem 2.125rem 1.875rem;
+        border-radius: 1.625rem;
+        transform: translateX(-30px);   /* corrimiento hacia la izquierda */
+      }
+      .form-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.5625rem;
+      }
+      .form-intro {
+        font-size: 0.9375rem;
+        margin-bottom: 1.4375rem;
+      }
+      .form-group {
+        gap: 0.375rem;
+        margin-bottom: 0.9375rem;
+      }
+      .form-label { font-size: 0.8125rem; }
+      .form-input {
+        padding: 0.75rem 0.9375rem;
+        font-size: 0.9375rem;
+        border-radius: 0.6875rem;
+      }
+      .choice-row { gap: 0.5625rem; }
+      .choice-box {
+        padding: 0.8125rem 0.5rem;
+        font-size: 0.8125rem;
+        border-radius: 0.6875rem;
+      }
+      .choice-box svg { width: 20px; height: 20px; }
+      .btn-submit {
+        margin-top: 1.3125rem;
+        padding: 0.9375rem 1.5rem;
+        font-size: 1.0625rem;
+        border-radius: 0.8125rem;
+      }
+      .form-legal { font-size: 0.71875rem; }
+    }
+
+    @media (min-width: 861px) and (max-width: 1180px) {
+      .page { grid-template-columns: 48% 52%; }
+      .form-zone { padding: 2rem 1.75rem; }
+    }
+
+    /* ══════════════════════════════════════════════
+       MÓVIL — imagen de intro arriba,
+       formulario abajo sobre el arte de fondo
+    ══════════════════════════════════════════════ */
+    @media (max-width: 860px) {
+      .hero-mobile {
+        display: block;
+        width: 100%;
+        /* El arte ocupa TODO el ancho de la pantalla y su alto sale
+           de la proporción real del archivo (1620 × 2880), así no se
+           recorta nada a los lados. */
+        aspect-ratio: 1620 / 2880;
+        background-image: url('./img-mobile-01.jpg');
+        background-size: 100% auto;
+        background-position: center top;
+        background-repeat: no-repeat;
+        background-color: #2f37d8;
+      }
+
+      .form-zone {
+        min-height: 100vh;
+        /* Ancho completo, sin recorte lateral. Anclado abajo para que
+           el lockup Kushki | Invu POS del arte quede visible bajo el
+           formulario. Lo que sobre arriba lo cubre un degradado con los
+           colores exactos de la primera fila del arte, así el empalme
+           es invisible (esa fila no es un azul plano). */
+        background-image:
+          url('./img-mobile-02.jpg'),
+          linear-gradient(90deg, #3324dd 0%, #2f36d8 50%, #2a47d5 100%);
+        background-size: 100% auto, cover;
+        background-position: center bottom, center top;
+        background-repeat: no-repeat, no-repeat;
+        align-items: flex-start;
+        /* Aire generoso alrededor de la tarjeta para que no se sienta
+           invasiva. El padding inferior amplio deja ver el lockup
+           Kushki | Invu POS del arte debajo del formulario. */
+        padding: 4.5rem 1.5rem 9.5rem;
+      }
+
+      .form-card {
+        max-width: 100%;
+        padding: 1.75rem 1.5rem 1.5rem;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+       TABLET Y MÓVILES ANCHOS (450 – 860px)
+       Laterales bien amplios y la tarjeta con un ancho
+       máximo, para que el formulario no se estire.
+    ══════════════════════════════════════════════ */
+    @media (min-width: 450px) and (max-width: 860px) {
+      .form-zone { padding: 5rem 3.5rem 10rem; }
+      .form-card {
+        max-width: 460px;
+        padding: 2rem 1.75rem 1.75rem;
+      }
+    }
+
+    /* Teléfonos (menos de 450px): interlineado más ajustado
+       en el párrafo de intro para que ocupe menos alto */
+    @media (max-width: 449.98px) {
+      .form-intro { line-height: 1.4; }
+    }
+
+    @media (max-width: 400px) {
+      .form-card { padding: 1.25rem 1rem 1.125rem; }
+      .form-title { font-size: 1.1875rem; }
+    }
+
+    /* ══════════════════════════════════════════════
+       POPUP DE AGRADECIMIENTO
+    ══════════════════════════════════════════════ */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(14,27,69,0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .popup-overlay.visible { opacity: 1; pointer-events: all; }
+
+    .popup-card {
+      background: #ffffff;
+      border-radius: 1.5rem;
+      padding: 2.25rem 1.75rem;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(14,27,69,0.35);
+      transform: scale(0.93);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .popup-overlay.visible .popup-card { transform: scale(1); }
+
+    .popup-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1.125rem;
+      background: var(--accent-soft);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-icon svg {
+      width: 26px;
+      height: 26px;
+      stroke: var(--accent);
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .popup-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.625rem;
+      line-height: 1.3;
+    }
+    .popup-text {
+      font-size: 0.875rem;
+      color: var(--text-soft);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .popup-accent { color: var(--accent); font-weight: 600; }
+
+    .btn-popup-close {
+      display: inline-block;
+      padding: 0.625rem 2rem;
+      background: var(--accent);
+      border: none;
+      border-radius: 2rem;
+      color: #ffffff;
+      font-family: 'Rubik', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-popup-close:hover { background: var(--accent-hover); }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <!-- ─── MÓVIL: imagen de intro ─────────────────────────────
+         Solo visible en pantallas ≤ 860px. En desktop el arte
+         completo es el fondo de .page. -->
+    <div class="hero-mobile" role="img"
+         aria-label="Kushki e Invu POS: impulsa el crecimiento de tu negocio con soluciones de pago ágiles"></div>
+
+    <!-- ─── FORMULARIO ────────────────────────────────────────── -->
+    <div class="form-zone">
+      <div class="form-card">
+
+        <!-- COPY BORRADOR — ajústalo con marketing -->
+        <h1 class="form-title">Activa tus pagos con <span class="accent">Kushki</span></h1>
+        <p class="form-intro">
+          Déjanos tus datos y un especialista de Kushki te contacta para
+          conversar sobre las soluciones de pago de tu negocio.
+        </p>
+
+        <form id="registration-form" novalidate>
+
+          <div class="form-group">
+            <label class="form-label" for="nombre">Nombre *</label>
+            <div class="field-wrapper">
+              <input class="form-input" type="text" id="nombre" name="nombre" placeholder="Ej. María González" required autocomplete="name" />
+              <span class="field-error-inline" id="err-nombre">Solo letras</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Correo *</label>
+            <div class="field-wrapper">
+              <input class="form-input" type="email" id="email" name="email" placeholder="correo@empresa.com" required autocomplete="email" />
+              <span class="field-error-inline" id="err-email">Correo inválido</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="telefono">Teléfono *</label>
+            <div class="field-wrapper">
+              <input class="form-input" type="tel" id="telefono" name="telefono" placeholder="+52 55 1234 5678" required autocomplete="tel" inputmode="tel" />
+              <span class="field-error-inline" id="err-telefono">Solo números</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="empresa">Empresa *</label>
+            <div class="field-wrapper">
+              <input class="form-input" type="text" id="empresa" name="empresa" placeholder="Ej. Grupo Comercial S.A." required autocomplete="organization" />
+              <span class="field-error-inline" id="err-empresa">Mínimo 2 caracteres</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <span class="form-label">¿Cómo prefieres que te contactemos? *</span>
+            <div class="choice-row" id="canal-group">
+
+              <label class="choice">
+                <input type="radio" name="canal" value="Correo" />
+                <span class="choice-box">
+                  <svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 6.5l9 6 9-6"/></svg>
+                  Correo
+                </span>
+              </label>
+
+              <label class="choice">
+                <input type="radio" name="canal" value="Llamada" />
+                <span class="choice-box">
+                  <svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 1.9.6 2.8a2 2 0 0 1-.4 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.8 2z"/></svg>
+                  Llamada
+                </span>
+              </label>
+
+              <label class="choice">
+                <input type="radio" name="canal" value="Reunión virtual" />
+                <span class="choice-box">
+                  <svg viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 10.5l7-3.5v10l-7-3.5z"/></svg>
+                  Reunión virtual
+                </span>
+              </label>
+
+            </div>
+          </div>
+
+          <div class="form-error" id="form-error">
+            Ocurrió un error al enviar. Por favor, intenta nuevamente.
+          </div>
+
+          <button class="btn-submit" type="submit" id="btn-submit">
+            Quiero que me contacten
+          </button>
+
+          <!-- Revisar el texto legal con Legal antes de publicar -->
+          <p class="form-legal">
+            Al enviar autorizas a Kushki a contactarte con información
+            comercial sobre sus soluciones de pago.
+          </p>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       POPUP DE AGRADECIMIENTO
+  ══════════════════════════════════════════════ -->
+  <div class="popup-overlay" id="popup-thanks" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+    <div class="popup-card">
+      <div class="popup-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 class="popup-title" id="popup-title">Recibimos tus datos 🚀</h2>
+      <p class="popup-text" id="popup-text">
+        Un especialista de <span class="popup-accent">Kushki</span> te contactará
+        por el canal que elegiste para mostrarte cómo activar tus pagos.
+      </p>
+      <button class="btn-popup-close" id="btn-popup-close">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    // ─── GOOGLE APPS SCRIPT URL ─────────────────────────────────
+    // Escribe en el Sheet "Leads - Form InvuPOS".
+    // Si algún día se reimplementa el script con una URL nueva,
+    // hay que actualizarla acá.
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAnV88aSrxehU1HJwuj3VKhGxBMH_P3Udmom1QeqEtkY-qNP_2oHN5J-func5KjrDg/exec";
+
+    // ─── REFERENCIAS ─────────────────────────────────────────────
+    const form          = document.getElementById('registration-form');
+    const btnSubmit     = document.getElementById('btn-submit');
+    const formError     = document.getElementById('form-error');
+    const popup         = document.getElementById('popup-thanks');
+    const btnPopupClose = document.getElementById('btn-popup-close');
+
+    // ─── POPUP ───────────────────────────────────────────────────
+    function openPopup() {
+      popup.classList.add('visible');
+      document.body.style.overflow = 'hidden';
+      btnPopupClose.focus();
+    }
+    function closePopup() {
+      popup.classList.remove('visible');
+      document.body.style.overflow = '';
+      // Deja el formulario listo para un nuevo registro
+      btnSubmit.disabled = false;
+      btnSubmit.classList.remove('loading');
+      btnSubmit.textContent = 'Quiero que me contacten';
+      document.querySelectorAll('.form-input').forEach(el => {
+        el.classList.remove('field-valid', 'field-invalid');
+      });
+    }
+
+    btnPopupClose.addEventListener('click', closePopup);
+    popup.addEventListener('click', function(e) {
+      if (e.target === popup) closePopup();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && popup.classList.contains('visible')) closePopup();
+    });
+
+    // ─── CANAL DE CONTACTO ───────────────────────────────────────
+    const canalGroup = document.getElementById('canal-group');
+    const canalRadios = canalGroup.querySelectorAll('input[name="canal"]');
+
+    function getCanal() {
+      const sel = canalGroup.querySelector('input[name="canal"]:checked');
+      return sel ? sel.value : '';
+    }
+    canalRadios.forEach(r => {
+      r.addEventListener('change', () => canalGroup.classList.remove('field-invalid'));
+    });
+
+    // ─── VALIDACIÓN EN TIEMPO REAL ────────────────────────────────
+    function showFieldError(inputId, errorId, show) {
+      const el  = document.getElementById(inputId);
+      const err = document.getElementById(errorId);
+      if (!err) return;
+      if (show) {
+        err.classList.add('visible');
+        el.classList.add('field-invalid');
+        el.classList.remove('field-valid');
+      } else if (el.value.trim()) {
+        err.classList.remove('visible');
+        el.classList.remove('field-invalid');
+        el.classList.add('field-valid');
+      } else {
+        err.classList.remove('visible');
+        el.classList.remove('field-invalid', 'field-valid');
+      }
+    }
+
+    // Empresa: mínimo 2 caracteres
+    const empresaInput = document.getElementById('empresa');
+    ['input', 'blur'].forEach(ev => {
+      empresaInput.addEventListener(ev, () => {
+        const v = empresaInput.value.trim();
+        if (!v) { showFieldError('empresa','err-empresa',false); return; }
+        showFieldError('empresa','err-empresa', v.length < 2);
+      });
+    });
+
+    // Nombre: solo letras
+    const nombreInput = document.getElementById('nombre');
+    ['input', 'blur'].forEach(ev => {
+      nombreInput.addEventListener(ev, () => {
+        const v = nombreInput.value.trim();
+        if (!v) { showFieldError('nombre','err-nombre',false); return; }
+        showFieldError('nombre','err-nombre', !/^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s\-\.]+$/.test(v));
+      });
+    });
+
+    // Teléfono: solo números, espacios y guiones
+    const telInput = document.getElementById('telefono');
+    ['input', 'blur'].forEach(ev => {
+      telInput.addEventListener(ev, () => {
+        const v = telInput.value.trim();
+        const errSpan = document.getElementById('err-telefono');
+        if (!v) { showFieldError('telefono','err-telefono',false); return; }
+        const hasLetters = /[a-zA-Z]/.test(v);
+        const tooShort   = v.replace(/\D/g,'').length < 6;
+        const badChars   = !/^[\d\s\-\+]+$/.test(v);
+        if (hasLetters || badChars) {
+          errSpan.textContent = 'Solo números';
+          showFieldError('telefono','err-telefono', true);
+        } else if (tooShort) {
+          errSpan.textContent = 'Número inválido';
+          showFieldError('telefono','err-telefono', true);
+        } else {
+          showFieldError('telefono','err-telefono', false);
+        }
+      });
+    });
+
+    // Email: formato válido
+    const emailInput = document.getElementById('email');
+    ['input', 'blur'].forEach(ev => {
+      emailInput.addEventListener(ev, () => {
+        const v = emailInput.value.trim();
+        if (!v) { showFieldError('email','err-email',false); return; }
+        showFieldError('email','err-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+      });
+    });
+
+    // ─── ENVÍO DEL FORMULARIO ────────────────────────────────────
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      formError.style.display = 'none';
+
+      const nombre   = document.getElementById('nombre').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const empresa  = document.getElementById('empresa').value.trim();
+      const canal    = getCanal();
+
+      // Campos obligatorios vacíos
+      const basic = [
+        { id: 'nombre',   val: nombre },
+        { id: 'email',    val: email },
+        { id: 'telefono', val: telefono },
+        { id: 'empresa',  val: empresa }
+      ];
+      for (const f of basic) {
+        if (!f.val) {
+          document.getElementById(f.id).focus();
+          formError.textContent = 'Por favor completa todos los campos antes de enviar.';
+          formError.style.display = 'block';
+          return;
+        }
+      }
+      if (!canal) {
+        canalGroup.classList.add('field-invalid');
+        canalRadios[0].focus();
+        formError.textContent = 'Elige cómo prefieres que te contactemos.';
+        formError.style.display = 'block';
+        return;
+      }
+
+      // Nombre: solo letras
+      if (!/^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s\-\.]+$/.test(nombre)) {
+        document.getElementById('nombre').focus();
+        formError.textContent = 'El nombre solo debe contener letras.';
+        formError.style.display = 'block';
+        return;
+      }
+
+      // Teléfono: solo dígitos, espacios, guiones y +
+      if (!/^[\d\s\-\+]+$/.test(telefono) || telefono.replace(/\D/g,'').length < 6) {
+        document.getElementById('telefono').focus();
+        formError.textContent = 'El teléfono solo debe contener números.';
+        formError.style.display = 'block';
+        return;
+      }
+
+      // Email: formato
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('email').focus();
+        formError.textContent = 'Por favor ingresa un correo electrónico válido.';
+        formError.style.display = 'block';
+        return;
+      }
+
+      // Guard: el endpoint todavía no está configurado
+      if (APPS_SCRIPT_URL.indexOf('script.google.com') === -1) {
+        formError.textContent = 'El formulario aún no está conectado al Sheet de leads. Configura APPS_SCRIPT_URL.';
+        formError.style.display = 'block';
+        return;
+      }
+
+      // Estado de carga
+      btnSubmit.disabled = true;
+      btnSubmit.classList.add('loading');
+      btnSubmit.textContent = 'Enviando';
+
+      const payload = {
+        nombre:   nombre,
+        email:    email,
+        telefono: telefono,
+        empresa:  empresa,
+        canal:    canal,
+        origen:   'Landing Partner Invu POS'
+      };
+
+      try {
+        const formData = new URLSearchParams();
+        Object.entries(payload).forEach(([k, v]) => formData.append(k, v));
+
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: formData
+        });
+
+        // Con no-cors no se puede leer la respuesta; si llegó aquí, se envió
+        form.reset();
+        canalGroup.classList.remove('field-invalid');
+        openPopup();
+
+      } catch (err) {
+        formError.textContent = 'Ocurrió un error al enviar. Por favor, intenta nuevamente.';
+        formError.style.display = 'block';
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('loading');
+        btnSubmit.textContent = 'Quiero que me contacten';
+      }
+    });
+  </script>
+</body>
+</html>
